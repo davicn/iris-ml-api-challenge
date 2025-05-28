@@ -1,0 +1,33 @@
+# Base image
+FROM python:3.10-slim
+
+# Evita prompts no pip
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Diretório de trabalho
+WORKDIR /app
+
+# Copia os arquivos de dependência
+COPY requirements.txt .
+
+# Instala dependências
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copia os scripts
+COPY . .
+
+# Variáveis de ambiente para AWS e S3
+ENV AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY_ID
+ENV AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEY
+# ENV MLFLOW_S3_ENDPOINT_URL=https://s3.amazonaws.com
+ENV MLFLOW_ARTIFACT_URI=s3://nome-do-seu-bucket/mlflow/
+
+# Exponha a porta do MLflow
+EXPOSE 5000
+
+# Comando para iniciar o MLflow Tracking Server com backend local e S3 como artifact store
+CMD ["mlflow", "server", \
+     "--host", "0.0.0.0", \
+     "--port", "5000", \
+     "--backend-store-uri", "sqlite:///mlflow.db", \
+     "--default-artifact-root", "s3://mlflow-iris-ch-a3data/mlflow/"]
